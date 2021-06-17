@@ -1,0 +1,17 @@
+# Files recommanded by JetBrain
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+
+/.idea/
+
+# Pycache folders generated for speeding up execution
+__pycache__/
+
+# Pytest folders generated when testing
+/.pytest_cache/
+
+# Distribution & Packaging
+*.egg-info/
+
+# Data related
+/databases/
