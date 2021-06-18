@@ -18,4 +18,5 @@ def get_kline_dataframe(symbol: str, interval: str, start: str, end: str):
 
     dataframe['open_time'] = pd.to_datetime(dataframe['open_time'] * 1_000_000)
     dataframe['close_time'] = pd.to_datetime((dataframe['close_time'] + 1) * 1_000_000)
+    dataframe.drop(columns=['ignore'], inplace=True)
     return dataframe

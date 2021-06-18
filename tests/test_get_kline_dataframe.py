@@ -1,5 +1,5 @@
-from portfolio_management.api import get_kline_dataframe
 from binance import Client
+from portfolio_management.api import get_kline_dataframe
 
 
 def test_get_kline_dataframe():

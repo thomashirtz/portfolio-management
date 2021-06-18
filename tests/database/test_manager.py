@@ -1,19 +1,23 @@
 from binance import Client
-from portfolio_management.database.core import setup_database
+
+from portfolio_management.database.manager import Manager
 
 
-def test_core():
-    folder_path = 'D:\\Thomas\\Python\\gym-portfolio-2\\databases'
+def test_database_manager():
+    folder_path = 'D:\\Thomas\\GitHub\\portfolio-management\\databases'
     database_name = 'test'
 
-    symbol_list = ["ETHBTC", "BNBBTC"]
+    symbol_list = ["ETHBTC"]
     interval = Client.KLINE_INTERVAL_30MINUTE
     start = "2017-11-12"
     end = "2017-11-14"
-
-    setup_database(
+    manager = Manager(
         folder_path=folder_path,
         database_name=database_name,
+        echo=False,
+        reset_tables=True
+    )
+    manager.insert(
         symbol_list=symbol_list,
         interval=interval,
         start=start,
@@ -22,4 +26,4 @@ def test_core():
 
 
 if __name__ == '__main__':
-    test_core()
+    test_database_manager()

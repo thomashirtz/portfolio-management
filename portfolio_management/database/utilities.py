@@ -62,6 +62,13 @@ def silent_bulk_insert(session: Session, instances: List[Type[Base]]) -> None:
         print('silent_bulk_insert_exception', e)
 
 
+def try_insert(session: Session, base: Type[Base], key: str, value: str) -> None:
+    count = session.query(getattr(base, 'id')).filter(getattr(base, key) == value).count()
+    if not count:
+        instance = base(**{key: value})
+        silent_insert(session, instance)
+
+
 def find_instance(
         session: Session,
         base: Base,
