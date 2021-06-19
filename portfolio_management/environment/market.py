@@ -4,6 +4,9 @@ import xarray as xr
 from portfolio_management.database import constants as c
 
 
+EPSILON = 10e-10  # avoid 0 in array before the applying log
+
+
 class Market:
     def __init__(
             self,
@@ -43,7 +46,12 @@ class Market:
         close = np.array(self.dataset[c.DATA].sel({c.PROPERTY: 'close'}).isel({c.INDEX: -1}))
 
         if self.apply_log:
-            observation = np.log(observation)
+            observation = np.log(observation + EPSILON)
 
         return observation, open_, close
+
+    @property
+    def current_time(self):
+        value = self.dataset[c.OPEN_TIME].isel({c.SYMBOL: 0})[-1].values  # todo remove isel when only one datatime in dataset
+        return int(np.datetime_as_string(value, unit='D').replace('-', ''))
 

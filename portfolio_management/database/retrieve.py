@@ -5,9 +5,12 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 
+from pathlib import Path
 from sqlalchemy.orm import Session
 
+import portfolio_management.paths as p
 import portfolio_management.database.constants as c
+from portfolio_management.io_utilities import pickle_dump
 
 from portfolio_management.database.bases import Data
 from portfolio_management.database.bases import Symbol
@@ -70,15 +73,18 @@ def get_dataframe(
 
 
 def get_dataset(
-        folder_path: str,
         database_name: str,
+        folder_path: Optional[str] = None,
         interval: Optional[str] = None,
         symbol_list: Optional[List[str]] = None,
         echo: bool = False,
         float_32: bool = True
 ) -> xr.Dataset:
+
+    databases_folder_path = folder_path or p.databases_folder_path
+
     with session_scope(
-            get_sessionmaker(folder_path, database_name, echo),
+            get_sessionmaker(str(databases_folder_path), database_name, echo),
             expire_on_commit=False
     ) as session:
         symbol_list = symbol_list or get_symbol_list(session=session)  # noqa
@@ -89,7 +95,7 @@ def get_dataset(
     properties_array_list = []
     for symbol in symbol_list:
         df = get_dataframe(
-            folder_path=folder_path,
+            folder_path=str(databases_folder_path),
             database_name=database_name,
             symbol=symbol,
             interval=interval,
@@ -109,7 +115,7 @@ def get_dataset(
     dataset = xr.Dataset(
         {
             c.DATA: ([c.SYMBOL, c.INDEX, c.PROPERTY], properties_array),
-            c.CLOSE_TIME: ([c.SYMBOL, c.INDEX], open_time_array),
+            c.CLOSE_TIME: ([c.SYMBOL, c.INDEX], open_time_array),  # todo put only one time in the dataset
             c.OPEN_TIME: ([c.SYMBOL, c.INDEX], close_time_array),
         },
         coords={
@@ -122,3 +128,31 @@ def get_dataset(
         }
     )
     return dataset
+
+
+def pickle_database(
+        database_name: str,
+        interval: Optional[str] = None,
+        symbol_list: Optional[List[str]] = None,
+        datasets_folder_path: Optional[str] = None,
+        databases_folder_path: Optional[str] = None,
+        float_32: bool = True,
+        echo: bool = False,
+
+) -> None:
+    dataset = get_dataset(
+        database_name=database_name,
+        folder_path=databases_folder_path,
+        interval=interval,
+        symbol_list=symbol_list,
+        echo=echo,
+        float_32=float_32,
+    )
+
+    if isinstance(datasets_folder_path, str):
+        datasets_folder_path = Path(datasets_folder_path)
+    else:
+        datasets_folder_path = p.datasets_folder_path
+
+    path_dataset = datasets_folder_path.joinpath(database_name).with_suffix('.pkl')
+    pickle_dump(path_dataset, dataset)

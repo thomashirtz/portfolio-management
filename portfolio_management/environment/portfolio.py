@@ -56,7 +56,7 @@ class Portfolio:
             [np.log(self.principal)],
             proportions,
         ))
-        return state
+        return state.astype(np.float32)
 
     def __repr__(self):
         return f'<{self.__class__.__name__}('\

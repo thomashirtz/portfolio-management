@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from portfolio_management.io_utilities import write_yaml
+from portfolio_management.io_utilities import create_folders
 
 from portfolio_management.database.bases import Base
 from portfolio_management.database.bases import Data
@@ -34,7 +35,7 @@ class Manager:
         self.database_name = database_name
         self.folder_path = folder_path
 
-        utilities.create_folders(get_path_database(folder_path, database_name).parent)
+        create_folders(get_path_database(folder_path, database_name).parent)
 
         self.engine_url = get_engine_url(folder_path, database_name)
         self.engine = create_engine(self.engine_url, echo=echo)
