@@ -2,7 +2,7 @@ from typing import Union
 from typing import List
 import numpy as np
 
-from portfolio_management.utilities import loguniform
+from portfolio_management.environment.utilities import loguniform
 
 
 class Portfolio:
@@ -29,7 +29,7 @@ class Portfolio:
     def step(
             self,
             new_proportions: Union[list, np.array],
-            open: Union[list, np.array],
+            open_: Union[list, np.array],
             close: Union[list, np.array],
     ):
         if self.proportions is None:
@@ -39,7 +39,7 @@ class Portfolio:
 
         self.proportions = np.array(new_proportions)
         values = self.proportions * self.amount
-        growth = np.array(close) / np.array(open)
+        growth = np.array(close) / np.array(open_)
         new_values = values * growth
         new_amount = np.sum(new_values)
 

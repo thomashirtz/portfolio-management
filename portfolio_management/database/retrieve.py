@@ -72,7 +72,7 @@ def get_dataframe(
 def get_dataset(
         folder_path: str,
         database_name: str,
-        interval: str,
+        interval: Optional[str] = None,
         symbol_list: Optional[List[str]] = None,
         echo: bool = False,
         float_32: bool = True
@@ -82,6 +82,7 @@ def get_dataset(
             expire_on_commit=False
     ) as session:
         symbol_list = symbol_list or get_symbol_list(session=session)  # noqa
+        interval = interval or session.query(Interval.value).first()[0]
 
     open_time_array_list = []
     close_time_array_list = []

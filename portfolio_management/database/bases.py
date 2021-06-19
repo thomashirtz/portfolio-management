@@ -37,7 +37,7 @@ class Interval(Base):
         return f"{type(self).__name__}(id={self.id}, value={self.value})"
 
 
-class Data(Base):
+class Data(Base): # todo change to constants
     __tablename__ = "data"
 
     id = Column('id', Integer, primary_key=True)

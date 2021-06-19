@@ -1,17 +1,17 @@
 from typing import List
-
+from pathlib import Path
 from sqlalchemy import inspect
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from portfolio_management import utilities
+from portfolio_management.io_utilities import write_yaml
 
 from portfolio_management.database.bases import Base
 from portfolio_management.database.bases import Data
 from portfolio_management.database.bases import Symbol
 from portfolio_management.database.bases import Interval
 
-from portfolio_management.api import get_kline_dataframe
+from portfolio_management.binance_api import get_kline_dataframe
 
 from portfolio_management.database.retrieve import get_symbol_id
 from portfolio_management.database.retrieve import get_interval_id
@@ -65,6 +65,18 @@ class Manager:
                 interval=interval,
                 dataframe=dataframe,
             )
+
+        config = {
+            "folder_path": self.folder_path,
+            "database_name": self.database_name,
+            "symbol_list": symbol_list,
+            "interval": interval,
+            "start": start,
+            "end": end,
+        }
+        path_yaml_file = Path(self.folder_path).joinpath(self.database_name).with_suffix('.yaml')
+        write_yaml(path_yaml_file=path_yaml_file, dictionary=config)
+        print('Config saved')
 
     def _insert_dataframe(self, symbol, interval, dataframe):
         with session_scope(self.Session) as session:
