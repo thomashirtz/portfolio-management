@@ -4,7 +4,7 @@ from portfolio_management.database.manager import Manager
 
 
 def test_database_manager():
-    folder_path = 'D:\\Thomas\\GitHub\\portfolio-management\\databases'
+    folder_path = None
     database_name = 'test'
 
     symbol_list = ["ETHBTC"]

@@ -1,4 +1,5 @@
 from typing import List
+from typing import Optional
 from pathlib import Path
 from sqlalchemy import inspect
 from sqlalchemy import create_engine
@@ -22,22 +23,27 @@ from portfolio_management.database.utilities import get_engine_url
 from portfolio_management.database.utilities import try_insert
 from portfolio_management.database.utilities import get_path_database
 from portfolio_management.database.utilities import silent_bulk_insert
+import portfolio_management.paths as p
 
 
 class Manager:
     def __init__(
             self,
-            folder_path: str,
             database_name: str,
+            folder_path: Optional[str] = None,
             echo: bool = False,
             reset_tables: bool = False,
     ):
+        if isinstance(folder_path, str):
+            self.folder_path = Path(folder_path)
+        else:
+            self.folder_path = p.databases_folder_path
+
         self.database_name = database_name
-        self.folder_path = folder_path
 
-        create_folders(get_path_database(folder_path, database_name).parent)
+        create_folders(get_path_database(str(self.folder_path), self.database_name).parent)  # todo need to support path
 
-        self.engine_url = get_engine_url(folder_path, database_name)
+        self.engine_url = get_engine_url(str(self.folder_path), self.database_name)  # todo need to support path
         self.engine = create_engine(self.engine_url, echo=echo)
         self.Session = sessionmaker(bind=self.engine)
 
@@ -46,6 +52,8 @@ class Manager:
 
         if self.database_is_empty(self.engine) or reset_tables:
             Base.metadata.create_all(bind=self.engine)
+            print('db created')
+
 
     def insert(
             self,

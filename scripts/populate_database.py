@@ -4,11 +4,10 @@ scripts_directory_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, scripts_directory_path + '/../')
 
 from portfolio_management.database.manager import Manager
-
+from portfolio_management.database.retrieve import pickle_database
 
 if __name__ == '__main__':
-    folder_path = 'D:\\Thomas\\GitHub\\portfolio-management\\databases'
-    database_name = 'database_2'
+    database_name = 'database_0'
 
     symbol_list = [
         'BTCTUSD',
@@ -19,10 +18,9 @@ if __name__ == '__main__':
 
     interval = '5m'
     start = "2020-01-01"
-    end = "2020-12-31"
+    end = "2020-01-02"
 
     manager = Manager(
-        folder_path=folder_path,
         database_name=database_name,
         echo=False,
         reset_tables=True
@@ -33,3 +31,4 @@ if __name__ == '__main__':
         start=start,
         end=end,
     )
+    pickle_database(database_name=database_name)
