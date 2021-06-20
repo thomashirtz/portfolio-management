@@ -54,7 +54,6 @@ class Manager:
             Base.metadata.create_all(bind=self.engine)
             print('db created')
 
-
     def insert(
             self,
             symbol_list: List[str],
