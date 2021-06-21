@@ -21,7 +21,6 @@ from portfolio_management.database.retrieve import get_interval_id
 from portfolio_management.database.utilities import session_scope
 from portfolio_management.database.utilities import get_engine_url
 from portfolio_management.database.utilities import try_insert
-from portfolio_management.database.utilities import get_path_database
 from portfolio_management.database.utilities import silent_bulk_insert
 import portfolio_management.paths as p
 
@@ -34,16 +33,11 @@ class Manager:
             echo: bool = False,
             reset_tables: bool = False,
     ):
-        if isinstance(folder_path, str):
-            self.folder_path = Path(folder_path)
-        else:
-            self.folder_path = p.databases_folder_path
-
         self.database_name = database_name
+        self.folder_path = p.get_databases_folder_path(folder_path)
+        create_folders(self.folder_path)
 
-        create_folders(get_path_database(str(self.folder_path), self.database_name).parent)  # todo need to support path
-
-        self.engine_url = get_engine_url(str(self.folder_path), self.database_name)  # todo need to support path
+        self.engine_url = get_engine_url(str(self.folder_path), self.database_name)
         self.engine = create_engine(self.engine_url, echo=echo)
         self.Session = sessionmaker(bind=self.engine)
 
@@ -75,14 +69,14 @@ class Manager:
             )
 
         config = {
-            "folder_path": self.folder_path,
+            "folder_path": str(self.folder_path),
             "database_name": self.database_name,
             "symbol_list": symbol_list,
             "interval": interval,
             "start": start,
             "end": end,
         }
-        path_yaml_file = Path(self.folder_path).joinpath(self.database_name).with_suffix('.yaml')
+        path_yaml_file = self.folder_path.joinpath(self.database_name).with_suffix('.yaml')
         write_yaml(path_yaml_file=path_yaml_file, dictionary=config)
         print('Config saved')
 

@@ -81,7 +81,7 @@ def get_dataset(
         float_32: bool = True
 ) -> xr.Dataset:
 
-    databases_folder_path = folder_path or p.databases_folder_path
+    databases_folder_path = p.get_databases_folder_path(folder_path)
 
     with session_scope(
             get_sessionmaker(str(databases_folder_path), database_name, echo),

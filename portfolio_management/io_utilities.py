@@ -1,4 +1,5 @@
 import yaml
+import json
 import pickle
 from pathlib import Path
 
@@ -20,3 +21,13 @@ def create_folders(path: Path) -> None:
 def write_yaml(path_yaml_file: Path, dictionary: dict):
     with open(path_yaml_file, 'w') as f:
         yaml.dump(dictionary, f, sort_keys=False)
+
+
+def read_json_file(file_path) -> dict:
+    with open(file_path, 'r') as f:
+        return json.load(f)
+
+
+def write_json_file(file_path, data: dict) -> None:
+    with open(file_path, 'w') as f:
+        json.dump(data, f)
