@@ -1,17 +1,27 @@
+from typing import Optional
+from typing import Sequence
+
 import gym
 import torch
 import numpy as np
 from pathlib import Path
-from typing import Optional
-from typing import Sequence
-
 
 from portfolio_management.soft_actor_critic.agent import Agent
 
 
-def evaluate(env_name: str, run_name: str, env_kwargs: Optional[dict] = None, num_episodes: int = 5, seed: int = 0,
-             hidden_units: Optional[Sequence[int]] = None, directory: str = '../runs/',
-             deterministic: bool = False, render: bool = False, record: bool = False, **kwargs):
+def evaluate(
+        env_name: str,
+        run_name: str,
+        env_kwargs: Optional[dict] = None,
+        num_episodes: int = 5,
+        seed: int = 0,
+        hidden_units: Optional[Sequence[int]] = None,
+        directory: str = '../runs/',
+        deterministic: bool = False,
+        render: bool = False,
+        record: bool = False,
+        **kwargs
+):
 
     if kwargs:
         print(f'Unrecognized kwargs : {kwargs}')

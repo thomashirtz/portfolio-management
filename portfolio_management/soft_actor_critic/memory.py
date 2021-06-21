@@ -1,11 +1,11 @@
-import numpy as np
-
 from typing import Tuple
 from typing import Union
 from typing import Sequence
 
+import numpy as np
 
-class ReplayBuffer:  # todo maybe do more clean in the future
+
+class ReplayBuffer:  # todo maybe do more clean in the future + random deletion
     def __init__(self, max_size: int, input_shape: Union[Sequence[int], int], num_actions: int):
         self.memory_counter = 0
         self.memory_size = int(max_size)

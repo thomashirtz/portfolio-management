@@ -1,14 +1,14 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # noqa Remove 'Successfully opened dynamic library' tensorflow warning
 
-import numpy as np
-from pathlib import Path
-from pathlib import PurePath
-
 from typing import Optional
 from typing import Sequence
 from typing import Union
 from typing import Tuple
+
+import numpy as np
+from pathlib import Path
+from pathlib import PurePath
 
 import torch
 import torch.optim as optim

@@ -1,11 +1,11 @@
 from typing import List
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 import xarray as xr
-import numpy as np
-
 from pathlib import Path
+
 from sqlalchemy.orm import Session
 
 import portfolio_management.paths as p

@@ -8,8 +8,9 @@ from gym.utils import seeding
 import numpy as np
 from scipy.special import softmax
 
-from portfolio_management.database import constants as c
 from portfolio_management import paths as p
+from portfolio_management.database import constants as c
+
 from portfolio_management.environment.data import get_dataset
 from portfolio_management.environment.market import Market
 from portfolio_management.environment.portfolio import Portfolio

@@ -1,11 +1,12 @@
+from typing import Optional
+from typing import Sequence
+
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.normal import Normal
-
-import numpy as np
-from typing import Optional
-from typing import Sequence
 
 from portfolio_management.soft_actor_critic.utilities import weight_initialization
 from portfolio_management.soft_actor_critic.utilities import get_multilayer_perceptron

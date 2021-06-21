@@ -1,12 +1,18 @@
+# Data variables
 OPEN_TIME = 'open_time'
 CLOSE_TIME = 'close_time'
+DATA = 'data'
+
+# Coordinates
 SYMBOL = 'symbol'
 PROPERTY = 'property'
-INTERVAL = 'interval'
-VALUE = 'value'
-DATA = 'data'
 INDEX = 'index'
 
+# Attributes
+INTERVAL = 'interval'
+
+# Others
+VALUE = 'value'
 PROPERTY_LIST = [
     'open',
     'high',

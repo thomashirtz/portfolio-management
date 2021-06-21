@@ -8,3 +8,5 @@ gym
 numpy
 scipy
 python-binance
+torch
+torchsummary

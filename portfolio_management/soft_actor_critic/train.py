@@ -1,11 +1,12 @@
+from typing import Optional
+from typing import Sequence
+
 import gym
 import torch
 import datetime
 import numpy as np
 from pathlib import Path
 from itertools import count
-from typing import Optional
-from typing import Sequence
 
 from torch.utils.tensorboard import SummaryWriter
 
@@ -17,11 +18,26 @@ from portfolio_management.soft_actor_critic.utilities import save_to_writer
 from portfolio_management.soft_actor_critic.utilities import get_timedelta_formatted
 
 
-def train(env_name: str, env_kwargs: Optional[dict] = None, batch_size: int = 256, memory_size: int = 10e6,
-          learning_rate: float = 3e-4, alpha: float = 0.05, gamma: float = 0.99, tau: float = 0.005,
-          num_steps: int = 1_000_000, hidden_units: Optional[Sequence[int]] = None, load_models: bool = False,
-          saving_frequency: int = 20, run_name: Optional[str] = None, start_step: int = 1_000, seed: int = 0,
-          updates_per_step: int = 1, directory: str = '../runs/', **kwargs):
+def train(
+        env_name: str,
+        env_kwargs: Optional[dict] = None,
+        batch_size: int = 256,
+        memory_size: int = 10e6,
+        learning_rate: float = 3e-4,
+        alpha: float = 0.05,
+        gamma: float = 0.99,
+        tau: float = 0.005,
+        num_steps: int = 1_000_000,
+        hidden_units: Optional[Sequence[int]] = None,
+        load_models: bool = False,
+        saving_frequency: int = 20,
+        run_name: Optional[str] = None,
+        start_step: int = 1_000,
+        seed: int = 0,
+        updates_per_step: int = 1,
+        directory: str = '../runs/',
+        **kwargs
+):
 
     if kwargs:
         print(f'Unrecognized kwargs : {kwargs}')

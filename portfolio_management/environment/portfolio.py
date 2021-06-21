@@ -1,5 +1,6 @@
 from typing import Union
 from typing import List
+
 import numpy as np
 
 from portfolio_management.environment.utilities import loguniform

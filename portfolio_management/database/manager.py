@@ -1,9 +1,11 @@
 from typing import List
 from typing import Optional
-from pathlib import Path
+
 from sqlalchemy import inspect
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+import portfolio_management.paths as p
 
 from portfolio_management.io_utilities import write_yaml
 from portfolio_management.io_utilities import create_folders
@@ -22,7 +24,6 @@ from portfolio_management.database.utilities import session_scope
 from portfolio_management.database.utilities import get_engine_url
 from portfolio_management.database.utilities import try_insert
 from portfolio_management.database.utilities import silent_bulk_insert
-import portfolio_management.paths as p
 
 
 class Manager:

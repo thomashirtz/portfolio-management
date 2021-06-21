@@ -1,10 +1,10 @@
-import torch
-import torch.nn as nn
-
 from typing import List
 from typing import Tuple
 from typing import Optional
 from typing import Sequence
+
+import torch
+import torch.nn as nn
 
 from portfolio_management.soft_actor_critic.utilities import weight_initialization
 from portfolio_management.soft_actor_critic.utilities import get_multilayer_perceptron

@@ -1,13 +1,13 @@
+from typing import List
+from typing import Union
+from typing import Optional
+
 import datetime
 from pathlib import Path
 from contextlib import contextmanager
 
 import torch
 import torch.nn as nn
-
-from typing import List
-from typing import Union
-from typing import Optional
 
 
 def get_run_name(*arguments, **keyword_arguments) -> str:
@@ -68,6 +68,7 @@ def filter_info(dictionary: dict) -> dict:
         if '/' in key and 'step:' not in key and isinstance(value, (int, float)):
             filtered_dictionary[key] = value
     return filtered_dictionary
+
 
 def filter_info_step(dictionary: dict) -> dict:
     filtered_dictionary = {}
