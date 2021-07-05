@@ -37,8 +37,10 @@ class Manager:
         self.database_name = database_name
         self.folder_path = p.get_databases_folder_path(folder_path)
         create_folders(self.folder_path)
+        print(self.folder_path)
 
         self.engine_url = get_engine_url(str(self.folder_path), self.database_name)
+        print(self.engine_url)
         self.engine = create_engine(self.engine_url, echo=echo)
         self.Session = sessionmaker(bind=self.engine)
 

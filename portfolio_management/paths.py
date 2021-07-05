@@ -22,7 +22,7 @@ def get_datasets_folder_path(path: Optional[Union[str, Path]] = None) -> Path:
 
 
 def get_databases_folder_path(path: Optional[Union[str, Path]] = None) -> Path:
-    return _get_path(path, datasets_folder_path)
+    return _get_path(path, databases_folder_path)
 
 
 def get_models_folder_path(path: Optional[Union[str, Path]] = None) -> Path:

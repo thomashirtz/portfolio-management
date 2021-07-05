@@ -1,5 +1,6 @@
 from typing import List
 from typing import Optional
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -21,7 +22,7 @@ from portfolio_management.database.utilities import get_sessionmaker
 
 
 def get_symbol_id(session: Session, symbol: str) -> int:
-    return session.query(Symbol.id).filter(Symbol.name == symbol).first()[0]
+    return session.query(Symbol.id).filter(Symbol.name == symbol).first()[0]  # error
 
 
 def get_interval_id(session: Session, interval: str) -> int:
@@ -34,12 +35,14 @@ def get_symbol_list(session: Session) -> list:
 
 
 def get_dataframe(
-        folder_path: str,
         database_name: str,
         symbol: str,
         interval: str,
+        folder_path: Optional[str] = None,
         echo: bool = False,
 ) -> pd.DataFrame:
+
+    folder_path = str(p.get_databases_folder_path(folder_path))
 
     with session_scope(
             get_sessionmaker(folder_path, database_name, echo),
@@ -72,13 +75,44 @@ def get_dataframe(
     return dataframe
 
 
+def preprocessing(
+        df: pd.DataFrame,
+        relative_change: bool = True,
+        relative_to: bool = True
+):
+    columns = []
+
+    if relative_change:
+        def get_relative_change(value):
+            return 100 * (value.shift(1) - 1) / value
+        df['r_open'] = get_relative_change(df['open'])
+        df['r_close'] = get_relative_change(df['close'])
+        df['r_high'] = get_relative_change(df['high'])
+        df['r_low'] = get_relative_change(df['low'])
+        r_columns = ['r_open', 'r_close', 'r_high', 'r_low']
+        columns += r_columns
+
+    if relative_to:
+        def get_relative_to(value, reference):
+            return 100 * (value - 1) / reference
+        df['rto_close'] = get_relative_to(df['close'], df['open'])
+        df['rto_low'] = get_relative_to(df['low'], df['open'])
+        df['rto_high'] = get_relative_to(df['high'], df['open'])
+        rto_columns = ['rto_close', 'rto_low', 'rto_high']
+        columns += rto_columns
+
+    return df[columns]
+
+
 def get_dataset(
         database_name: str,
         folder_path: Optional[str] = None,
         interval: Optional[str] = None,
         symbol_list: Optional[List[str]] = None,
         echo: bool = False,
-        float_32: bool = True
+        float_32: bool = True,
+        preprocessing: Optional[Callable] = preprocessing,
+        target: Optional[Callable] = preprocessing,
 ) -> xr.Dataset:
 
     databases_folder_path = p.get_databases_folder_path(folder_path)
@@ -93,6 +127,7 @@ def get_dataset(
     open_time_array_list = []
     close_time_array_list = []
     properties_array_list = []
+    preprocessing_array_list = [] # todo it is not really an array
     for symbol in symbol_list:
         df = get_dataframe(
             folder_path=str(databases_folder_path),
@@ -105,6 +140,12 @@ def get_dataset(
         close_time_array_list.append(df[c.CLOSE_TIME])
         properties_array_list.append(df[c.PROPERTY_LIST])
 
+        if preprocessing is not None:
+            preprocessing_array_list.append(preprocessing(df))
+
+        if preprocessing is not None:
+            preprocessing_array_list.append(target(df))
+
     dtype = 'float32' if float_32 else 'float64'
     properties_array = np.stack(properties_array_list).astype(dtype)
 
@@ -112,16 +153,28 @@ def get_dataset(
     close_time_array = np.stack(close_time_array_list)
     indexes = np.arange(open_time_array.shape[1])
 
+    data_preprocessing = {}
+    coords_preprocessing = {}
+    if preprocessing is not None:
+        coords = list(preprocessing_array_list[0].columns)
+        coords_preprocessing = {'preprocessing_property': coords}  # edit for having the thing in k
+        preprocessed_data = np.stack(preprocessing_array_list)
+        data_preprocessing = {
+            'data_preprocessing': ([c.SYMBOL, c.INDEX, 'preprocessing_property'], preprocessed_data)
+        }
+
     dataset = xr.Dataset(
         {
             c.DATA: ([c.SYMBOL, c.INDEX, c.PROPERTY], properties_array),
             c.CLOSE_TIME: ([c.SYMBOL, c.INDEX], open_time_array),  # todo put only one time in the dataset
             c.OPEN_TIME: ([c.SYMBOL, c.INDEX], close_time_array),
+            **data_preprocessing
         },
         coords={
             c.SYMBOL: symbol_list,
             c.PROPERTY: c.PROPERTY_LIST,
             c.INDEX: indexes,
+            **coords_preprocessing
         },
         attrs={
             c.INTERVAL: interval
