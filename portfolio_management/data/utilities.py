@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
-from portfolio_management.database.bases import Base
+from portfolio_management.data.bases import Base
 
 
 def get_path_database(folder_path: str, database_name: str) -> Path:

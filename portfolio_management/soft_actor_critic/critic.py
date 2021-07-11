@@ -45,7 +45,7 @@ class TwinnedQNetworks(nn.Module):
         self.q_network_1 = QNetwork(input_dims=input_dims, num_actions=num_actions, hidden_units=self.hidden_units)
         self.q_network_2 = QNetwork(input_dims=input_dims, num_actions=num_actions, hidden_units=self.hidden_units)
 
-    def forward(self, state, action) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, state, action) -> Tuple[torch.Tensor, torch.Tensor]: # todo maybe pass into the module before splitting
         q_1 = self.q_network_1(state, action)
         q_2 = self.q_network_2(state, action)
         return q_1, q_2

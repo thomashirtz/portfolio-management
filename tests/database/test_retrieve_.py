@@ -1,8 +1,8 @@
 from binance import Client
 
-from portfolio_management.database.manager import Manager
-from portfolio_management.database.retrieve import get_dataset
-from portfolio_management.database.retrieve import get_dataframe
+from portfolio_management.data.manager import Manager
+from portfolio_management.data.retrieve import get_dataset
+from portfolio_management.data.retrieve import get_dataframe
 
 
 def test_database_retrieve():

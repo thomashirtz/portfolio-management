@@ -13,8 +13,16 @@ from portfolio_management.soft_actor_critic.utilities import get_multilayer_perc
 
 
 class StochasticPolicy(nn.Module):
-    def __init__(self, input_dims: int, num_actions: int, hidden_units: Optional[Sequence[int]] = None,
-                 action_space=None, epsilon: float = 10e-6, log_sigma_max: float = 2, log_sigma_min: float = -20):
+    def __init__(
+            self,
+            input_dims: int,
+            num_actions: int,
+            hidden_units: Optional[Sequence[int]] = None,
+            action_space=None,
+            epsilon: float = 10e-6,
+            log_sigma_max: float = 2,
+            log_sigma_min: float = -20
+    ):
         super(StochasticPolicy, self).__init__()
 
         if hidden_units is None:

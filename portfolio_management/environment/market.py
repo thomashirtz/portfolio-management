@@ -1,20 +1,20 @@
 import numpy as np
 import xarray as xr
 
-from portfolio_management.database import constants as c
+from portfolio_management.data import constants as c
 
 
 EPSILON = 10e-10  # avoid 0 in array before the applying log
 
 
-class Market:
+class Market: # todo add dimension
     def __init__(
             self,
             dataset: xr.Dataset,
             num_steps: int,
             observation_size: int,
             step_size: int = 1,
-            apply_log: bool = True,
+            apply_log: bool = False,
             chronologically: bool = True,
     ):
         self.dataset = dataset
@@ -33,14 +33,15 @@ class Market:
 
     def reset(self):
         if not self.chronologically:
-            self.current_index = np.random.choice(self.margin_down, self.max_index - self.margin_up)
+            self.current_index = np.random.choice([self.margin_down, self.max_index - self.margin_up])
+        print(f'{self.margin_up=},{self.max_index=},{self.current_index=}')
         if self.current_index > self.max_index - self.margin_up:
             self.current_index = self.margin_down
             print('restart from zero')
 
     def step(self):
         index_slice = slice(self.current_index - self.observation_size, self.current_index)
-        observation = self.dataset[c.DATA].sel({c.INDEX: index_slice})
+        observation = self.dataset[c.DATA_PREPROCESSED].sel({c.INDEX: index_slice})
 
         open_ = np.array(self.dataset[c.DATA].sel({c.PROPERTY: 'open'}).isel({c.INDEX: -self.step_size}))
         close = np.array(self.dataset[c.DATA].sel({c.PROPERTY: 'close'}).isel({c.INDEX: -1}))

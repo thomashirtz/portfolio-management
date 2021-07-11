@@ -23,7 +23,7 @@ class Portfolio:
         self.principal_range = principal_range
 
     def reset(self):
-        self.proportions = None
+        self.proportions = None # [1, 0, 0, 0]
         self.amount = self.principal = loguniform(*self.principal_range)
         return self.state
 
@@ -33,8 +33,8 @@ class Portfolio:
             open_: Union[list, np.array],
             close: Union[list, np.array],
     ):
-        if self.proportions is None:
-            fees = 0
+        if self.proportions is None:  # all stakes in USD
+            fees = 0 # need to change that
         else:
             fees = np.sum(np.abs(np.array(new_proportions) - self.proportions) * self.amount * self.fees)
 

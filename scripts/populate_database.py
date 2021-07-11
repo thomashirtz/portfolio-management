@@ -3,8 +3,8 @@ import sys
 scripts_directory_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, scripts_directory_path + '/../')
 
-from portfolio_management.database.manager import Manager
-from portfolio_management.database.retrieve import pickle_database
+from portfolio_management.data.manager import Manager
+from portfolio_management.data.retrieve import pickle_database
 
 if __name__ == '__main__':
     database_name = 'database_0'

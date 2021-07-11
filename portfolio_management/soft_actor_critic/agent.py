@@ -26,10 +26,21 @@ from portfolio_management.soft_actor_critic.utilities import update_network_para
 
 
 class Agent:
-    def __init__(self, observation_shape: int, num_actions: int, batch_size: int = 256, memory_size: int = 10e6,
-                 learning_rate: float = 3e-4, alpha: float = 1, gamma: float = 0.99, tau: float = 0.005,
-                 hidden_units: Optional[Sequence[int]] = None, load_models: bool = False,
-                 checkpoint_directory: Optional[Union[Path, str]] = None):  # todo implement hard update
+    def __init__(
+            self,
+            observation_shape: int,
+            num_actions: int,
+            module: Optional[torch.nn.Module] = None,
+            batch_size: int = 256,
+            memory_size: int = 10e6,
+            learning_rate: float = 3e-4,
+            alpha: float = 1,
+            gamma: float = 0.99,
+            tau: float = 0.005,
+            hidden_units: Optional[Sequence[int]] = None,
+            load_models: bool = False,
+            checkpoint_directory: Optional[Union[Path, str]] = None
+    ):
 
         self.tau = tau
         self.gamma = gamma
@@ -42,7 +53,7 @@ class Agent:
         self.memory_size = memory_size
 
         self.memory = ReplayBuffer(memory_size, self.observation_shape, self.num_actions)
-
+        # todo learn how to do module + concatenate
         self.policy = StochasticPolicy(input_dims=self.observation_shape, num_actions=self.num_actions, hidden_units=hidden_units)
         self.critic = TwinnedQNetworks(input_dims=self.observation_shape, num_actions=self.num_actions, hidden_units=hidden_units)
         self.target_critic = TwinnedQNetworks(input_dims=self.observation_shape, num_actions=self.num_actions, hidden_units=hidden_units)

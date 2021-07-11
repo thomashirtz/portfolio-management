@@ -1,5 +1,5 @@
 import xarray as xr
-from portfolio_management.database.retrieve import pickle_database
+from portfolio_management.data.retrieve import pickle_database
 
 
 if __name__ == '__main__':

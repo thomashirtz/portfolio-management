@@ -9,7 +9,7 @@ import numpy as np
 from scipy.special import softmax
 
 from portfolio_management import paths as p
-from portfolio_management.database import constants as c
+from portfolio_management.data import constants as c
 
 from portfolio_management.environment.data import get_dataset
 from portfolio_management.environment.market import Market
@@ -28,9 +28,9 @@ class PortfolioEnv(Env):  # noqa
             num_steps: int = 100,
             fees: float = 0.002,
             seed: Optional[int] = None,
-            chronologically: bool = True,
+            chronologically: bool = False,
             step_size: Optional[int] = 1,
-            observation_size: int = 12,
+            observation_size: int = 25,
             stake_range: Optional[list] = None,
             databases_folder_path: Optional[str] = None,
             datasets_folder_path: Optional[str] = None,
@@ -38,13 +38,14 @@ class PortfolioEnv(Env):  # noqa
 
         datasets_folder_path = datasets_folder_path or p.datasets_folder_path
         databases_folder_path = databases_folder_path or p.databases_folder_path
-        self.dataset = get_dataset(
+        self.dataset = get_dataset(  # todo edit so that we accept only pickle to avoid ambiguity and complexity
             name=database_name,
+            currencies=currencies,
             datasets_folder_path=datasets_folder_path,
-            databases_folder_path=databases_folder_path
+            databases_folder_path=databases_folder_path,
         )
 
-        self.currencies = currencies or list(self.dataset[c.SYMBOL].values)
+        self.currencies = list(self.dataset[c.SYMBOL].values)
 
         self.seed(seed)
         self.current_step = None
@@ -60,26 +61,37 @@ class PortfolioEnv(Env):  # noqa
 
         self.market = Market(
             dataset=self.dataset,
-            apply_log=True,
+            apply_log=False,  # todo remove epsilon et apply log, remove preprocessing from this part of the project
             step_size=step_size,
             num_steps=num_steps,
             chronologically=chronologically,
             observation_size=observation_size,
         )
 
-        portfolio_observation_size = len(self.currencies) + 2
-        market_observation_size = observation_size * len(c.PROPERTY_LIST) * len(self.currencies)
+        num_features = len(self.dataset[c.PREPROCESSING_PROPERTY].values)
 
         self.action_space = spaces.Box(
             low=0,
             high=1,
             shape=(len(self.currencies), )
         )
-        self.observation_space = spaces.Box(
-            low=-np.inf,
-            high=np.inf,
-            shape=(market_observation_size + portfolio_observation_size, )
-        )
+
+        self.observation_space = spaces.Tuple((
+            spaces.Box(  # Market state
+                low=-np.inf,
+                high=np.inf,
+                shape=(len(self.currencies), num_features, observation_size)
+            ),
+            spaces.Box(  # Current portfolio proportions
+                low=0,
+                high=1,
+                shape=(len(self.currencies), )
+            ),
+            spaces.Box(  # Principal and Amount
+                low=np.log(min(self.stake_range)),
+                high=np.log(max(self.stake_range)),
+                shape=(2,)),
+        ))
 
     def seed(self, seed=None) -> list:
         self.np_random, seed = seeding.np_random(seed)  # noqa

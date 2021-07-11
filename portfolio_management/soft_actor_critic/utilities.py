@@ -38,9 +38,16 @@ def get_device(overwrite: Optional[bool] = None, device: str = 'cuda:0', fallbac
     return torch.device(device if use_cuda else fallback_device)
 
 
-def update_network_parameters(source: nn.Module, target: nn.Module, tau: float) -> None:
+def update_network_parameters(
+        source: nn.Module,
+        target: nn.Module,
+        tau: float,
+        update_source: bool = False
+) -> None:
     for target_parameters, source_parameters in zip(target.parameters(), source.parameters()):
         target_parameters.data.copy_(target_parameters.data * (1.0 - tau) + source_parameters.data * tau)
+        if update_source:
+            source_parameters.data.copy_(target_parameters.data)
 
 
 def save_model(model: nn.Module, file: Union[str, Path]) -> None:

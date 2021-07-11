@@ -8,7 +8,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-import portfolio_management.database.constants as c
+import portfolio_management.data.constants as c
 
 
 Base = declarative_base()
@@ -38,7 +38,7 @@ class Interval(Base):
         return f"{type(self).__name__}(id={self.id}, value={self.value})"
 
 
-class Data(Base):
+class Data(Base):  # todo need to redo whole structure
     __tablename__ = "data"
 
     id = Column('id', Integer, primary_key=True)

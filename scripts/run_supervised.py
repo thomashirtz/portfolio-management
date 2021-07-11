@@ -5,8 +5,8 @@ sys.path.insert(0, scripts_directory_path + '/../')
 
 # I will in the future segment that into different modules and clean it up, but I would like to first know where I'm going
 
-from portfolio_management.database.manager import Manager
-from portfolio_management.database.retrieve import pickle_database
+from portfolio_management.data.manager import Manager
+from portfolio_management.data.retrieve import pickle_database
 
 from portfolio_management.io_utilities import pickle_load
 from portfolio_management.paths import datasets_folder_path

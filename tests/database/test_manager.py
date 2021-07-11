@@ -1,6 +1,6 @@
 from binance import Client
 
-from portfolio_management.database.manager import Manager
+from portfolio_management.data.manager import Manager
 
 
 def test_database_manager():

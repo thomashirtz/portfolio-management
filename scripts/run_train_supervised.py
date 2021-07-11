@@ -1,5 +1,5 @@
-from portfolio_management.database.manager import Manager
-from portfolio_management.database.retrieve import pickle_database
+from portfolio_management.data.manager import Manager
+from portfolio_management.data.retrieve import pickle_database
 from portfolio_management.io_utilities import pickle_load
 from portfolio_management.paths import datasets_folder_path
 

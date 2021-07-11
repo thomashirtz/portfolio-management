@@ -11,6 +11,10 @@ INDEX = 'index'
 # Attributes
 INTERVAL = 'interval'
 
+# Preprocessing
+DATA_PREPROCESSED = 'data_preprocessed'
+PREPROCESSING_PROPERTY = 'preprocessing_property'
+
 # Others
 VALUE = 'value'
 PROPERTY_LIST = [

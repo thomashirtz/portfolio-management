@@ -10,15 +10,15 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 import portfolio_management.paths as p
-import portfolio_management.database.constants as c
+import portfolio_management.data.constants as c
 from portfolio_management.io_utilities import pickle_dump
 
-from portfolio_management.database.bases import Data
-from portfolio_management.database.bases import Symbol
-from portfolio_management.database.bases import Interval
+from portfolio_management.data.bases import Data
+from portfolio_management.data.bases import Symbol
+from portfolio_management.data.bases import Interval
 
-from portfolio_management.database.utilities import session_scope
-from portfolio_management.database.utilities import get_sessionmaker
+from portfolio_management.data.utilities import session_scope
+from portfolio_management.data.utilities import get_sessionmaker
 
 
 def get_symbol_id(session: Session, symbol: str) -> int:
@@ -75,35 +75,6 @@ def get_dataframe(
     return dataframe
 
 
-def preprocessing(
-        df: pd.DataFrame,
-        relative_change: bool = True,
-        relative_to: bool = True
-):
-    columns = []
-
-    if relative_change:
-        def get_relative_change(value):
-            return 100 * (value.shift(1) - 1) / value
-        df['r_open'] = get_relative_change(df['open'])
-        df['r_close'] = get_relative_change(df['close'])
-        df['r_high'] = get_relative_change(df['high'])
-        df['r_low'] = get_relative_change(df['low'])
-        r_columns = ['r_open', 'r_close', 'r_high', 'r_low']
-        columns += r_columns
-
-    if relative_to:
-        def get_relative_to(value, reference):
-            return 100 * (value - 1) / reference
-        df['rto_close'] = get_relative_to(df['close'], df['open'])
-        df['rto_low'] = get_relative_to(df['low'], df['open'])
-        df['rto_high'] = get_relative_to(df['high'], df['open'])
-        rto_columns = ['rto_close', 'rto_low', 'rto_high']
-        columns += rto_columns
-
-    return df[columns]
-
-
 def get_dataset(
         database_name: str,
         folder_path: Optional[str] = None,
@@ -111,8 +82,8 @@ def get_dataset(
         symbol_list: Optional[List[str]] = None,
         echo: bool = False,
         float_32: bool = True,
-        preprocessing: Optional[Callable] = preprocessing,
-        target: Optional[Callable] = preprocessing,
+        preprocessing: Optional[Callable] = None,
+        target: Optional[Callable] = None,
 ) -> xr.Dataset:
 
     databases_folder_path = p.get_databases_folder_path(folder_path)
@@ -127,7 +98,8 @@ def get_dataset(
     open_time_array_list = []
     close_time_array_list = []
     properties_array_list = []
-    preprocessing_array_list = [] # todo it is not really an array
+    preprocessing_array_list = []  # todo it is not really an array
+
     for symbol in symbol_list:
         df = get_dataframe(
             folder_path=str(databases_folder_path),
@@ -143,7 +115,7 @@ def get_dataset(
         if preprocessing is not None:
             preprocessing_array_list.append(preprocessing(df))
 
-        if preprocessing is not None:
+        if target is not None:
             preprocessing_array_list.append(target(df))
 
     dtype = 'float32' if float_32 else 'float64'
@@ -157,10 +129,10 @@ def get_dataset(
     coords_preprocessing = {}
     if preprocessing is not None:
         coords = list(preprocessing_array_list[0].columns)
-        coords_preprocessing = {'preprocessing_property': coords}  # edit for having the thing in k
+        coords_preprocessing = {c.PREPROCESSING_PROPERTY: coords}  # edit for having the thing in k
         preprocessed_data = np.stack(preprocessing_array_list)
         data_preprocessing = {
-            'data_preprocessing': ([c.SYMBOL, c.INDEX, 'preprocessing_property'], preprocessed_data)
+            c.DATA_PREPROCESSED: ([c.SYMBOL, c.INDEX, c.PREPROCESSING_PROPERTY], preprocessed_data)
         }
 
     dataset = xr.Dataset(
@@ -180,7 +152,7 @@ def get_dataset(
             c.INTERVAL: interval
         }
     )
-    return dataset
+    return dataset.isel({c.INDEX: slice(1, -1)})
 
 
 def pickle_database(

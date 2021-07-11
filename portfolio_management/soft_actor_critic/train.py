@@ -21,6 +21,7 @@ from portfolio_management.soft_actor_critic.utilities import get_timedelta_forma
 def train(
         env_name: str,
         env_kwargs: Optional[dict] = None,
+        module: Optional[torch.nn.Module] = None,
         batch_size: int = 256,
         memory_size: int = 10e6,
         learning_rate: float = 3e-4,
@@ -44,6 +45,7 @@ def train(
 
     env_kwargs = env_kwargs or {}
     env = gym.make(env_name, **env_kwargs)
+
     observation_shape = env.observation_space.shape[0]  # todo learn how to handle 2D observations
     num_actions = env.action_space.shape[0]
 
@@ -51,10 +53,19 @@ def train(
     run_directory = Path(directory) / run_name
     writer = SummaryWriter(run_directory)
 
-    agent = Agent(observation_shape=observation_shape, num_actions=num_actions,
-                  alpha=alpha, learning_rate=learning_rate, gamma=gamma, tau=tau,
-                  hidden_units=hidden_units, batch_size=batch_size, memory_size=memory_size,
-                  checkpoint_directory=run_directory, load_models=load_models)
+    agent = Agent(
+        observation_shape=observation_shape,
+        num_actions=num_actions,
+        alpha=alpha,
+        learning_rate=learning_rate,
+        gamma=gamma,
+        tau=tau,
+        hidden_units=hidden_units,
+        batch_size=batch_size,
+        memory_size=memory_size,
+        checkpoint_directory=run_directory,
+        load_models=load_models
+    )
 
     env.seed(seed)
     np.random.seed(seed)
