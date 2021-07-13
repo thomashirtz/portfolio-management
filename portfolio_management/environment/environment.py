@@ -57,7 +57,7 @@ class PortfolioEnv(Env):  # noqa
             currencies=self.currencies,
             fees=fees,
             principal_range=self.stake_range,
-        )
+        ) # todo edit portfolio state
 
         self.market = Market(
             dataset=self.dataset,

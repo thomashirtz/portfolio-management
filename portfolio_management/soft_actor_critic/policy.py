@@ -1,7 +1,9 @@
 from typing import Optional
 from typing import Sequence
+from typing import List
 
 import numpy as np
+from copy import deepcopy
 
 import torch
 import torch.nn as nn
@@ -11,11 +13,13 @@ from torch.distributions.normal import Normal
 from portfolio_management.soft_actor_critic.utilities import weight_initialization
 from portfolio_management.soft_actor_critic.utilities import get_multilayer_perceptron
 
+from portfolio_management.soft_actor_critic.evaluators import Evaluator
+
 
 class StochasticPolicy(nn.Module):
     def __init__(
             self,
-            input_dims: int,
+            evaluator: Evaluator,
             num_actions: int,
             hidden_units: Optional[Sequence[int]] = None,
             action_space=None,
@@ -28,7 +32,9 @@ class StochasticPolicy(nn.Module):
         if hidden_units is None:
             hidden_units = [256, 256]
 
-        self.input_dims = input_dims
+        self.evaluator = deepcopy(evaluator)
+
+        self.input_dims = evaluator.num_evaluator_outputs
         self.num_actions = num_actions
         self.hidden_units = list(hidden_units)
 
@@ -36,7 +42,7 @@ class StochasticPolicy(nn.Module):
         self.log_sigma_max = log_sigma_max
         self.log_sigma_min = log_sigma_min
 
-        units = [input_dims] + list(hidden_units)
+        units = [self.input_dims] + list(hidden_units)
         self.multilayer_perceptron = get_multilayer_perceptron(units, keep_last_relu=True)
         self.mean_linear = nn.Linear(units[-1], num_actions)
         self.log_std_linear = nn.Linear(units[-1], num_actions)
@@ -50,8 +56,9 @@ class StochasticPolicy(nn.Module):
 
         self.apply(weight_initialization)
 
-    def forward(self, x):  # todo maybe merge forward and evaluate + maybe add the "act" from openai
-        x = self.multilayer_perceptron(x)
+    def forward(self, tensor_list: List[torch.Tensor]):  # todo maybe merge forward and evaluate + maybe add the "act" from openai
+        x_evaluated = self.evaluator(*tensor_list)
+        x = self.multilayer_perceptron(x_evaluated)
         mean = self.mean_linear(x)
         log_std = self.log_std_linear(x)
 
@@ -59,8 +66,13 @@ class StochasticPolicy(nn.Module):
         std = torch.exp(log_std_clamped)
         return mean, std
 
-    def evaluate(self, state, deterministic: bool = False, with_log_probability: bool = True):
-        mean, std = self.forward(state)
+    def evaluate(
+            self,
+            tensor_list: List[torch.Tensor],
+            deterministic: bool = False,
+            with_log_probability: bool = True
+    ):
+        mean, std = self.forward(*tensor_list)
         distribution = Normal(mean, std)
         sample = distribution.rsample()
 
@@ -85,7 +97,15 @@ class StochasticPolicy(nn.Module):
 
         return action, log_probability
 
-    def act(self, observation, deterministic=False) -> np.array:  # todo need to replace in the agent code
+    def act(
+            self,
+            tensor_list: List[torch.Tensor],
+            deterministic=False
+    ) -> np.array:
         with torch.no_grad():
-            action, _ = self.evaluate(observation, deterministic=deterministic, with_log_probability=False)
+            action, _ = self.evaluate(
+                *tensor_list,
+                deterministic=deterministic,
+                with_log_probability=False
+            )
             return action.cpu().numpy()

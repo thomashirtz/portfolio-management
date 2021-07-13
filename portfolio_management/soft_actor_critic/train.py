@@ -17,11 +17,18 @@ from portfolio_management.soft_actor_critic.utilities import get_run_name
 from portfolio_management.soft_actor_critic.utilities import save_to_writer
 from portfolio_management.soft_actor_critic.utilities import get_timedelta_formatted
 
+from portfolio_management.soft_actor_critic.evaluators import Evaluator
+from portfolio_management.soft_actor_critic.evaluators import BasicEvaluator
+
 
 def train(
         env_name: str,
         env_kwargs: Optional[dict] = None,
-        module: Optional[torch.nn.Module] = None,
+
+        evaluator: Evaluator = BasicEvaluator,
+        num_evaluator_outputs: int = 100,
+        num_extractor_outputs: int = 5,
+
         batch_size: int = 256,
         memory_size: int = 10e6,
         learning_rate: float = 3e-4,
@@ -46,7 +53,7 @@ def train(
     env_kwargs = env_kwargs or {}
     env = gym.make(env_name, **env_kwargs)
 
-    observation_shape = env.observation_space.shape[0]  # todo learn how to handle 2D observations
+    observation_shapes = tuple(space.shape for space in env.observation_space.spaces)  # todo learn how to handle 2D observations
     num_actions = env.action_space.shape[0]
 
     run_name = run_name if run_name is not None else get_run_name(env_name)
@@ -54,8 +61,11 @@ def train(
     writer = SummaryWriter(run_directory)
 
     agent = Agent(
-        observation_shape=observation_shape,
+        observation_shapes=observation_shapes,
         num_actions=num_actions,
+        evaluator=evaluator,
+        num_evaluator_outputs=num_evaluator_outputs,
+        num_extractor_outputs=num_extractor_outputs,
         alpha=alpha,
         learning_rate=learning_rate,
         gamma=gamma,

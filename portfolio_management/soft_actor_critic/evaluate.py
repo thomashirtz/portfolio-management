@@ -7,12 +7,16 @@ import numpy as np
 from pathlib import Path
 
 from portfolio_management.soft_actor_critic.agent import Agent
-
+from portfolio_management.soft_actor_critic.evaluators import Evaluator
+from portfolio_management.soft_actor_critic.evaluators import BasicEvaluator
 
 def evaluate(
         env_name: str,
         run_name: str,
         env_kwargs: Optional[dict] = None,
+        evaluator: Evaluator = BasicEvaluator,
+        num_evaluator_outputs: int = 100,
+        num_extractor_outputs: int = 5,
         num_episodes: int = 5,
         seed: int = 0,
         hidden_units: Optional[Sequence[int]] = None,
@@ -28,12 +32,20 @@ def evaluate(
 
     env_kwargs = env_kwargs or {}
     env = gym.make(env_name, **env_kwargs)
-    observation_shape = env.observation_space.shape[0]
+    observation_shapes = tuple(space.shape for space in env.observation_space.spaces)
     num_actions = env.action_space.shape[0]
     run_directory = Path(directory) / run_name
 
-    agent = Agent(observation_shape=observation_shape, num_actions=num_actions, hidden_units=hidden_units,
-                  checkpoint_directory=run_directory, load_models=True, memory_size=1)
+    agent = Agent(
+        num_evaluator_outputs=num_evaluator_outputs,
+        num_extractor_outputs=num_extractor_outputs,
+        evaluator=evaluator,
+        observation_shapes=observation_shapes,
+        num_actions=num_actions, hidden_units=hidden_units,
+        checkpoint_directory=run_directory,
+        load_models=True,
+        memory_size=1
+    )
 
     env.seed(seed)
     np.random.seed(seed)

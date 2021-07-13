@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Union
 from typing import Tuple
+from typing import List
 
 import numpy as np
 from pathlib import Path
@@ -24,13 +25,20 @@ from portfolio_management.soft_actor_critic.utilities import save_model
 from portfolio_management.soft_actor_critic.utilities import load_model
 from portfolio_management.soft_actor_critic.utilities import update_network_parameters
 
+from portfolio_management.soft_actor_critic.evaluators import Evaluator
+from portfolio_management.soft_actor_critic.evaluators import BasicEvaluator
+
 
 class Agent:
     def __init__(
             self,
-            observation_shape: int,
+            observation_shapes: Sequence[Union[Sequence[int], int]],
             num_actions: int,
-            module: Optional[torch.nn.Module] = None,
+
+            num_evaluator_outputs: int,
+            num_extractor_outputs: int,
+            evaluator: Optional[Evaluator] = BasicEvaluator,
+
             batch_size: int = 256,
             memory_size: int = 10e6,
             learning_rate: float = 3e-4,
@@ -46,17 +54,27 @@ class Agent:
         self.gamma = gamma
         self.learning_rate = learning_rate
 
+        self.observation_shapes = observation_shapes
         self.num_actions = num_actions
-        self.observation_shape = observation_shape
 
         self.batch_size = batch_size
         self.memory_size = memory_size
 
-        self.memory = ReplayBuffer(memory_size, self.observation_shape, self.num_actions)
-        # todo learn how to do module + concatenate
-        self.policy = StochasticPolicy(input_dims=self.observation_shape, num_actions=self.num_actions, hidden_units=hidden_units)
-        self.critic = TwinnedQNetworks(input_dims=self.observation_shape, num_actions=self.num_actions, hidden_units=hidden_units)
-        self.target_critic = TwinnedQNetworks(input_dims=self.observation_shape, num_actions=self.num_actions, hidden_units=hidden_units)
+        self.memory = ReplayBuffer(
+            max_size=self.memory_size,
+            observation_shapes=self.observation_shapes,
+            num_actions=self.num_actions
+        )
+
+        evaluator = evaluator(
+            input_shapes=observation_shapes,
+            num_evaluator_outputs=num_evaluator_outputs,
+            num_extractor_outputs=num_extractor_outputs,
+        )
+
+        self.policy = StochasticPolicy(evaluator, num_actions=self.num_actions, hidden_units=hidden_units)
+        self.critic = TwinnedQNetworks(evaluator, num_actions=self.num_actions, hidden_units=hidden_units)
+        self.target_critic = TwinnedQNetworks(evaluator, num_actions=self.num_actions, hidden_units=hidden_units)
 
         self.policy_optimizer = optim.Adam(self.policy.parameters(), lr=learning_rate)
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=learning_rate)
@@ -88,7 +106,7 @@ class Agent:
                 load_model(self.policy, self.policy_checkpoint_path)
                 load_model(self.critic, self.critic_checkpoint_path)
 
-    def choose_action(self, observation, deterministically: bool = False) -> np.array:
+    def choose_action(self, observation, deterministically: bool = False) -> np.array: # todo not gonna work for 1 sample
         observation = torch.FloatTensor(observation).to(self.device)
         action = self.policy.act(observation, deterministic=deterministically)
         return action
@@ -97,13 +115,14 @@ class Agent:
         self.memory.store_transition(state, action, reward, new_state, done)
 
     def learn(self) -> dict:
-        state, action, reward, next_state, done = self.memory.sample_buffer(self.batch_size)
+        state_list, action, reward, next_state_list, done = self.memory.sample_buffer(self.batch_size)
 
-        state = torch.FloatTensor(state).to(self.device)
         action = torch.FloatTensor(action).to(self.device)
         reward = torch.FloatTensor(reward).to(self.device).unsqueeze(1)
-        next_state = torch.FloatTensor(next_state).to(self.device)
         done = torch.FloatTensor(done).to(self.device).unsqueeze(1)
+
+        state = [torch.FloatTensor(state).to(self.device) for state in state_list]
+        next_state = [torch.FloatTensor(next_state).to(self.device) for next_state in next_state_list]
 
         critic_1_loss, critic_2_loss = self._critic_optimization(state, action, reward, next_state, done)
         policy_loss = self._policy_optimization(state)
@@ -120,8 +139,15 @@ class Agent:
         }
         return tensorboard_logs
 
-    def _critic_optimization(self, state: torch.Tensor, action: torch.Tensor, reward: torch.Tensor,
-                             next_state: torch.Tensor, done: torch.Tensor) -> Tuple[float, float]:
+    def _critic_optimization(
+            self,
+            state: List[torch.Tensor],
+            action: torch.Tensor,
+            reward: torch.Tensor,
+            next_state: List[torch.Tensor],
+            done: torch.Tensor
+    ) -> Tuple[float, float]:
+
         with torch.no_grad():
             next_action, next_log_pi = self.policy.evaluate(next_state)
             next_q_target_1, next_q_target_2 = self.target_critic.forward(next_state, next_action)
@@ -138,7 +164,7 @@ class Agent:
         self.critic_optimizer.step()
         return q_network_1_loss.item(), q_network_2_loss.item()
 
-    def _policy_optimization(self, state: torch.Tensor) -> float:
+    def _policy_optimization(self, state: List[torch.Tensor]) -> float:
         with eval_mode(self.critic):
             predicted_action, log_probabilities = self.policy.evaluate(state)
             q_1, q_2 = self.critic(state, predicted_action)
@@ -151,7 +177,7 @@ class Agent:
             self.policy_optimizer.step()
             return policy_loss.item()
 
-    def _entropy_optimization(self, state: torch.Tensor) -> float:
+    def _entropy_optimization(self, state: List[torch.Tensor]) -> float:
         with eval_mode(self.policy):
             _, log_pi = self.policy.evaluate(state)
             alpha_loss = -(self.log_alpha * (log_pi + self.target_entropy).detach()).mean()
