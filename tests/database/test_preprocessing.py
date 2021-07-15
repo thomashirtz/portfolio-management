@@ -1,15 +1,11 @@
 from portfolio_management.data.manager import Manager
 from portfolio_management.data.retrieve import get_dataset
-from portfolio_management.data.retrieve import get_dataframe
+from portfolio_management.data.preprocessing import get_pca_preprocessing_function
 
 
-def test_database_retrieve(
-        print_dataframe: bool = True,
-        print_dataset: bool = True
-):
-
+def test_database_retrieve(display_dataset: bool = True):
     folder_path = None
-    database_name = 'test'
+    database_name = 'test_preprocessing'
 
     symbol_list = ["ETHBTC"]
     interval = '30m'
@@ -29,21 +25,16 @@ def test_database_retrieve(
         end=end,
     )
 
-    dataframe = get_dataframe(
-        folder_path=folder_path,
-        database_name=database_name,
-        symbol=symbol_list[0],
-        interval=interval,
-    )
-    if print_dataframe:
-        print(dataframe)
+    preprocessing_function = get_pca_preprocessing_function()
 
     dataset = get_dataset(
         folder_path=folder_path,
         database_name=database_name,
-        interval=interval
+        interval=interval,
+        preprocessing=preprocessing_function
     )
-    if print_dataset:
+
+    if display_dataset:
         print(dataset)
 
 
