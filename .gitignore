@@ -16,3 +16,4 @@ __pycache__/
 # Data related
 /databases/
 /datasets/
+/runs/
