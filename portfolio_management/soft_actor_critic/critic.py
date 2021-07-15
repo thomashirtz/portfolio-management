@@ -46,7 +46,7 @@ class TwinnedQNetworks(nn.Module):
         if hidden_units is None:
             hidden_units = [256, 256]
 
-        self.input_dims = evaluator.num_evaluator_outputs
+        self.input_dims = evaluator.num_outputs
         self.num_actions = num_actions
         self.hidden_units = list(hidden_units)
 

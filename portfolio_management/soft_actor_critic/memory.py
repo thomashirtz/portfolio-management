@@ -20,8 +20,8 @@ class ReplayBuffer:  # todo do more clean + random deletion + PER
         self.action_memory = np.zeros((self.memory_size, num_actions), dtype=np.float32)
         self.done_memory = np.zeros(self.memory_size, dtype=np.float32)
 
-        self.state_memories = [np.zeros((self.memory_size, shape), dtype=np.float32) for shape in observation_shapes]
-        self.new_state_memories = [np.zeros((self.memory_size, shape), dtype=np.float32) for shape in observation_shapes]
+        self.state_memories = [np.zeros((self.memory_size, *shape), dtype=np.float32) for shape in observation_shapes]
+        self.new_state_memories = [np.zeros((self.memory_size, *shape), dtype=np.float32) for shape in observation_shapes]
 
     def store_transition(
             self,

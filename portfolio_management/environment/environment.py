@@ -1,5 +1,6 @@
 from typing import Tuple
 from typing import Optional
+from typing import Any
 
 from gym import Env
 from gym import spaces
@@ -11,7 +12,7 @@ from scipy.special import softmax
 from portfolio_management import paths as p
 from portfolio_management.data import constants as c
 
-from portfolio_management.environment.data import get_dataset
+from portfolio_management.io_utilities import pickle_load
 from portfolio_management.environment.market import Market
 from portfolio_management.environment.portfolio import Portfolio
 # from portfolio_management.environment.utilities import rate_calculator
@@ -23,8 +24,7 @@ DEFAULT_STAKE_RANGE = [10, 1000]
 class PortfolioEnv(Env):  # noqa
     def __init__(
             self,
-            database_name: str,
-            currencies: Optional[list] = None,
+            dataset_name: str,
             num_steps: int = 100,
             fees: float = 0.002,
             seed: Optional[int] = None,
@@ -32,18 +32,12 @@ class PortfolioEnv(Env):  # noqa
             step_size: Optional[int] = 1,
             observation_size: int = 25,
             stake_range: Optional[list] = None,
-            databases_folder_path: Optional[str] = None,
             datasets_folder_path: Optional[str] = None,
     ):
 
-        datasets_folder_path = datasets_folder_path or p.datasets_folder_path
-        databases_folder_path = databases_folder_path or p.databases_folder_path
-        self.dataset = get_dataset(  # todo edit so that we accept only pickle to avoid ambiguity and complexity
-            name=database_name,
-            currencies=currencies,
-            datasets_folder_path=datasets_folder_path,
-            databases_folder_path=databases_folder_path,
-        )
+        datasets_folder_path = p.get_datasets_folder_path(datasets_folder_path)
+        file_path = datasets_folder_path.joinpath(dataset_name).with_suffix('.pkl')
+        self.dataset = pickle_load(file_path)
 
         self.currencies = list(self.dataset[c.SYMBOL].values)
 
@@ -57,7 +51,7 @@ class PortfolioEnv(Env):  # noqa
             currencies=self.currencies,
             fees=fees,
             principal_range=self.stake_range,
-        ) # todo edit portfolio state
+        )  # todo edit portfolio state
 
         self.market = Market(
             dataset=self.dataset,
@@ -88,24 +82,24 @@ class PortfolioEnv(Env):  # noqa
                 shape=(len(self.currencies), )
             ),
             spaces.Box(  # Principal and Amount
-                low=np.log(min(self.stake_range)),
-                high=np.log(max(self.stake_range)),
-                shape=(2,)),
+                low=0,
+                high=1,
+                shape=(len(self.portfolio.state),)),
         ))
 
     def seed(self, seed=None) -> list:
         self.np_random, seed = seeding.np_random(seed)  # noqa
         return [seed]
 
-    def reset(self) -> list:
+    def reset(self) -> Any:
         self.current_step = 0
         portfolio_state = self.portfolio.reset()
+        proportions_state = self.portfolio.proportions
         self.market.reset()
-        market_dataset, _, _ = self.market.step()
-        market_state = np.array(market_dataset.values).flatten()  # todo issue with -inf present in dataset
-        return np.concatenate((market_state, portfolio_state))
+        market_state, _, _ = self.market.step()
+        return market_state, proportions_state, portfolio_state
 
-    def step(self, action: list) -> Tuple[list, float, bool, dict]:
+    def step(self, action: list) -> Tuple[Any, float, bool, dict]:
         if sum(action) == 1:
             proportions = np.array(action)
         else:
@@ -113,11 +107,12 @@ class PortfolioEnv(Env):  # noqa
 
         self.current_step += 1
         done = True if self.current_step >= self.num_steps else False
-        market_dataset, open_, close = self.market.step()
+        market_state, open_, close = self.market.step()
         reward, _, portfolio_state = self.portfolio.step(proportions, open_, close)
 
-        market_state = np.array(market_dataset.values).flatten()  # todo check issue with market state -inf
-        state = np.concatenate((market_state, portfolio_state))
+        portfolio_state = self.portfolio.reset()
+        proportions_state = self.portfolio.proportions
+        state = market_state, proportions_state, portfolio_state
 
         # If the key in 'info' contains '/' it would be added to tensorboard every end of episode (done=True)
         # If the key in 'info' starts by 'step:' the value will be recorded every step instead of every episode

@@ -5,6 +5,9 @@ import numpy as np
 
 from portfolio_management.environment.utilities import loguniform
 
+STEP_NORMALIZATION = 100
+AMOUNT_NORMALIZATION = 100
+
 
 class Portfolio:
     def __init__(
@@ -17,13 +20,15 @@ class Portfolio:
         self.principal = None
 
         self.proportions = None
+        self.current_step = None
 
         self.fees = fees
         self.currencies = currencies
         self.principal_range = principal_range
 
     def reset(self):
-        self.proportions = None # [1, 0, 0, 0]
+        self.proportions = np.array([1.] + [0] * (len(self.currencies) - 1))
+        self.current_step = 0
         self.amount = self.principal = loguniform(*self.principal_range)
         return self.state
 
@@ -33,10 +38,7 @@ class Portfolio:
             open_: Union[list, np.array],
             close: Union[list, np.array],
     ):
-        if self.proportions is None:  # all stakes in USD
-            fees = 0 # need to change that
-        else:
-            fees = np.sum(np.abs(np.array(new_proportions) - self.proportions) * self.amount * self.fees)
+        fees = np.sum(np.abs(np.array(new_proportions) - np.array(self.proportions)) * self.amount * self.fees)
 
         self.proportions = np.array(new_proportions)
         values = self.proportions * self.amount
@@ -46,18 +48,19 @@ class Portfolio:
 
         reward = (new_amount - self.amount - fees) / self.amount * 100  # todo maybe use principal if not stable
         self.amount = new_amount - fees
+        self.current_step += 1
 
         return reward, self.amount, self.state
 
     @property
     def state(self) -> np.array:
-        proportions = self.proportions if self.proportions is not None else np.zeros(shape=len(self.currencies))
-        state = np.concatenate((
-            [np.log(self.amount)],
-            [np.log(self.principal)],
-            proportions,
-        ))
-        return state.astype(np.float32)
+        return np.array([
+            (self.current_step or 0)/STEP_NORMALIZATION,
+            (self.amount or 1)/AMOUNT_NORMALIZATION,
+            (self.principal or 1)/AMOUNT_NORMALIZATION,
+            np.log(self.amount or 1),
+            np.log(self.principal or 1),
+        ], dtype=np.float32)
 
     def __repr__(self):
         return f'<{self.__class__.__name__}('\

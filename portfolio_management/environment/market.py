@@ -7,7 +7,7 @@ from portfolio_management.data import constants as c
 EPSILON = 10e-10  # avoid 0 in array before the applying log
 
 
-class Market: # todo add dimension
+class Market:  # todo add dimension
     def __init__(
             self,
             dataset: xr.Dataset,
@@ -40,7 +40,7 @@ class Market: # todo add dimension
             print('restart from zero')
 
     def step(self):
-        index_slice = slice(self.current_index - self.observation_size, self.current_index)
+        index_slice = slice(self.current_index - (self.observation_size - 1), self.current_index)  # todo - 1 is a hack need to recheck
         observation = self.dataset[c.DATA_PREPROCESSED].sel({c.INDEX: index_slice})
 
         open_ = np.array(self.dataset[c.DATA].sel({c.PROPERTY: 'open'}).isel({c.INDEX: -self.step_size}))
@@ -49,10 +49,18 @@ class Market: # todo add dimension
         if self.apply_log:
             observation = np.log(observation + EPSILON)
 
-        return observation, open_, close
+        self.current_index += 1
+        return self.dataset_to_numpy(observation), open_, close
 
     @property
     def current_time(self):
         value = self.dataset[c.OPEN_TIME].isel({c.SYMBOL: 0})[-1].values  # todo remove isel when only one datatime in dataset
         return int(np.datetime_as_string(value, unit='D').replace('-', ''))
+
+    @staticmethod
+    def dataset_to_numpy(dataset: xr.Dataset) -> np.array:
+        array = np.array(dataset)
+        # Change array from (Symbol, Index, Property) to (Symbol, Property, Index) for better pytorch handling
+        array_reordered = np.moveaxis(array, [1, 2], [2, 1])
+        return array_reordered
 
