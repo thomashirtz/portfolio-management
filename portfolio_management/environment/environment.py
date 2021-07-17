@@ -110,7 +110,7 @@ class PortfolioEnv(Env):  # noqa
         market_state, open_, close = self.market.step()
         reward, _, portfolio_state = self.portfolio.step(proportions, open_, close)
 
-        portfolio_state = self.portfolio.reset()
+        #portfolio_state = self.portfolio.reset()
         proportions_state = self.portfolio.proportions
         state = market_state, proportions_state, portfolio_state
 
@@ -123,13 +123,6 @@ class PortfolioEnv(Env):  # noqa
         info['information/date'] = self.market.current_time
         info['information/amount'] = self.portfolio.amount
         info['information/principal'] = self.portfolio.principal
-
-        # todo update the following code
-        # time = self.current_step * self.market.main_timestep * self.market.step_size / (60 * 24)
-        # rate = rate_calculator(self.portfolio.amount, self.portfolio.principal, time)
-        #
-        # info['portfolio/monthly_interest'] = np.exp(1) ** (rate * 30.5) - 1
-        # info['portfolio/yearly_interest'] = np.exp(1) ** (rate * 365) - 1
-        # info['portfolio/current_interest'] = self.portfolio.amount / self.portfolio.principal - 1
+        info['information/ratio_amount_principal'] = self.portfolio.amount/self.portfolio.principal
 
         return state, reward, done, info

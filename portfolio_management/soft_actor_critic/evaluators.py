@@ -42,7 +42,7 @@ class Evaluator(nn.Module):  # todo change name
 
         market_state_shape, proportion_state_shape, complementary_state_shape = input_shapes
         self.num_symbols, self.num_properties, self.num_observations = market_state_shape
-        self.num_complementary_data = complementary_state_shape
+        self.num_complementary_data = complementary_state_shape[0]
 
 
 class BasicEvaluator(Evaluator):
@@ -59,7 +59,7 @@ class BasicEvaluator(Evaluator):
         )
 
         self.extractor = nn.Linear(self.num_properties * self.num_observations, num_extractor_outputs)  # todo maybe do other classes 'extractors'
-        self.linear = nn.Linear(self.num_symbols * num_extractor_outputs + self.num_symbols + 2, num_evaluator_outputs)
+        self.linear = nn.Linear(self.num_symbols * num_extractor_outputs + self.num_symbols + self.num_complementary_data, num_evaluator_outputs)
 
     def forward(
             self,

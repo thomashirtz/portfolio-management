@@ -19,6 +19,7 @@ from portfolio_management.soft_actor_critic.utilities import get_timedelta_forma
 
 from portfolio_management.soft_actor_critic.evaluators import Evaluator
 from portfolio_management.soft_actor_critic.evaluators import BasicEvaluator
+from portfolio_management.paths import get_runs_folder_path
 
 
 def train(
@@ -43,7 +44,7 @@ def train(
         start_step: int = 1_000,
         seed: int = 0,
         updates_per_step: int = 1,
-        directory: str = '../runs/',
+        directory: Optional[str] = None,
         **kwargs
 ):
 
@@ -57,8 +58,9 @@ def train(
     num_actions = env.action_space.shape[0]
 
     run_name = run_name if run_name is not None else get_run_name(env_name)
-    run_directory = Path(directory) / run_name
-    writer = SummaryWriter(run_directory)
+
+    run_directory = get_runs_folder_path(directory) / run_name
+    writer = SummaryWriter(str(run_directory))
 
     agent = Agent(
         observation_shapes=observation_shapes,

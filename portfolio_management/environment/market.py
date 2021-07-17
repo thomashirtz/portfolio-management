@@ -33,8 +33,8 @@ class Market:  # todo add dimension
 
     def reset(self):
         if not self.chronologically:
-            self.current_index = np.random.choice([self.margin_down, self.max_index - self.margin_up])
-        print(f'{self.margin_up=},{self.max_index=},{self.current_index=}')
+            self.current_index = np.random.randint(self.margin_down, self.max_index - self.margin_up)
+        # print(f'{self.margin_up=},{self.max_index=},{self.current_index=}')
         if self.current_index > self.max_index - self.margin_up:
             self.current_index = self.margin_down
             print('restart from zero')

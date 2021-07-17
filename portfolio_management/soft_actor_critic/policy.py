@@ -72,7 +72,7 @@ class StochasticPolicy(nn.Module):
             deterministic: bool = False,
             with_log_probability: bool = True
     ):
-        mean, std = self.forward(*tensor_list)
+        mean, std = self.forward(tensor_list)
         distribution = Normal(mean, std)
         sample = distribution.rsample()
 
@@ -104,8 +104,8 @@ class StochasticPolicy(nn.Module):
     ) -> np.array:
         with torch.no_grad():
             action, _ = self.evaluate(
-                *tensor_list,
+                tensor_list,
                 deterministic=deterministic,
                 with_log_probability=False
             )
-            return action.cpu().numpy()
+            return action.squeeze(0).cpu().numpy() # todo maybe issue dimension DDD

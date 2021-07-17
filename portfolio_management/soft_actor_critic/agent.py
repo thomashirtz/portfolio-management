@@ -106,9 +106,9 @@ class Agent:
                 load_model(self.policy, self.policy_checkpoint_path)
                 load_model(self.critic, self.critic_checkpoint_path)
 
-    def choose_action(self, observation, deterministically: bool = False) -> np.array: # todo not gonna work for 1 sample
-        observation = torch.FloatTensor(observation).to(self.device)
-        action = self.policy.act(observation, deterministic=deterministically)
+    def choose_action(self, state_list, deterministically: bool = False) -> np.array: # todo not gonna work for 1 sample
+        state_tensor_list = [torch.FloatTensor(state).unsqueeze(0).to(self.device) for state in state_list]  # maybe issue first dim DDD
+        action = self.policy.act(state_tensor_list, deterministic=deterministically)
         return action
 
     def remember(self, state, action, reward, new_state, done) -> None:
