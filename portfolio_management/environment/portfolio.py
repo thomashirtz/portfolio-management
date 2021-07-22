@@ -40,9 +40,13 @@ class Portfolio:
     ):
 
         fees = np.sum(np.abs(np.array(new_proportions) - np.array(self.proportions)) * self.amount * self.fees)
-
+        c = np.abs(np.array(new_proportions) - np.array(self.proportions))
+        d = np.array(new_proportions)
+        e =  np.array(self.proportions)
         self.proportions = np.array(new_proportions)
         values = self.proportions * self.amount
+        a = np.array(close)
+        b  = np.array(open_)
         growth = np.array(close) / np.array(open_)
         new_values = values * growth
         new_amount = np.sum(new_values)

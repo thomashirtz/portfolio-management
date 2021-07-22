@@ -20,7 +20,7 @@ def get_dataset(
         file_path = folder_path.joinpath(name).with_suffix('.pkl')
         return pickle_load(file_path)
     except Exception as e:
-        print(e)
+        print(e) # todo check if processing_property is in dataset
 
     path = p.get_databases_folder_path(databases_folder_path)
     return _get_dataset(

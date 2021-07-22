@@ -26,7 +26,7 @@ class PortfolioEnv(Env):  # noqa
             self,
             dataset_name: str,
             num_steps: int = 100,
-            fees: float = 0.002,
+            fees: float = 0.005,
             seed: Optional[int] = None,
             chronologically: bool = False,
             step_size: Optional[int] = 1,
@@ -55,7 +55,6 @@ class PortfolioEnv(Env):  # noqa
 
         self.market = Market(
             dataset=self.dataset,
-            apply_log=False,  # todo remove epsilon et apply log, remove preprocessing from this part of the project
             step_size=step_size,
             num_steps=num_steps,
             chronologically=chronologically,
@@ -106,13 +105,19 @@ class PortfolioEnv(Env):  # noqa
             proportions = softmax(action)
 
         self.current_step += 1
-        done = True if self.current_step >= self.num_steps else False
+
         market_state, open_, close = self.market.step()
         reward, _, portfolio_state = self.portfolio.step(proportions, open_, close)
 
-        #portfolio_state = self.portfolio.reset()
         proportions_state = self.portfolio.proportions
         state = market_state, proportions_state, portfolio_state
+
+        if self.num_steps is None:
+            done = self.market.done
+        elif self.current_step >= self.num_steps:
+            done = True
+        else:
+            done = False
 
         # If the key in 'info' contains '/' it would be added to tensorboard every end of episode (done=True)
         # If the key in 'info' starts by 'step:' the value will be recorded every step instead of every episode
@@ -120,9 +125,19 @@ class PortfolioEnv(Env):  # noqa
         for i, currency in enumerate(self.currencies):
             info[f'step:portfolio/{currency}'] = float(proportions[i])
 
-        info['information/date'] = self.market.current_time
+        info['information/date'] = self.market.current_time # todo only show one
         info['information/amount'] = self.portfolio.amount
         info['information/principal'] = self.portfolio.principal
         info['information/ratio_amount_principal'] = self.portfolio.amount/self.portfolio.principal
 
         return state, reward, done, info
+
+    @property
+    def render_data(self) -> dict:
+        # return dict of all the close +
+        # normalize to one
+        # multiply by principal
+        # add amount to dicy
+        dictionary = self.market.data_render
+        dictionary['amount'] = self.portfolio.amount
+        return dictionary
