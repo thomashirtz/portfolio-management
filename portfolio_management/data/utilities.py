@@ -84,3 +84,6 @@ def inner_join(a, b) -> list:
 
 def remove_keys_from_dictionary(dictionary: dict, keys: list) -> dict:
     return {k: v for k, v in dictionary.items() if k not in keys}
+
+def prepare_dataset():
+    pass

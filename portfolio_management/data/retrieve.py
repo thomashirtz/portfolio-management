@@ -83,7 +83,7 @@ def get_dataset(
         echo: bool = False,
         float_32: bool = True,
         preprocessing: Optional[Callable] = None,
-        target: Optional[Callable] = None,
+        preprocessing_kwargs: Optional[Callable] = None,
 ) -> xr.Dataset:
 
     databases_folder_path = p.get_databases_folder_path(folder_path)
@@ -113,10 +113,7 @@ def get_dataset(
         properties_array_list.append(df[c.PROPERTY_LIST])
 
         if preprocessing is not None:
-            preprocessing_array_list.append(preprocessing(df))
-
-        if target is not None:
-            preprocessing_array_list.append(target(df))
+            preprocessing_array_list.append(preprocessing(df)) # todo preprocessing common to all 
 
     dtype = 'float32' if float_32 else 'float64'
     properties_array = np.stack(properties_array_list).astype(dtype)
