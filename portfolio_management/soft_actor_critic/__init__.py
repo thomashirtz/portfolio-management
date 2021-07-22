@@ -1,2 +1,3 @@
 from portfolio_management.soft_actor_critic.train import train
 from portfolio_management.soft_actor_critic.evaluate import evaluate
+from portfolio_management.soft_actor_critic.render import render
