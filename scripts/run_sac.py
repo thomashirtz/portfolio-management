@@ -14,17 +14,17 @@ if __name__ == '__main__':  # can't test sac yet, there is 'inf' value in datase
     # first run 'prepare_pickled_dataset' !
     # todo find why it is slow
 
-    train = True
+    train = False
     dataset_name = 'USDT_train'
 
     env_kwargs = {
         'dataset_name': dataset_name,
         'num_steps': 100,
-        'fees': 0.002,
+        'fees': 0.005,
         'seed': 1,
         'step_size': 1,
         'chronologically': False,
-        'observation_size': 12,
+        'observation_size': 50,
         'stake_range': [100, 100],
     }
 
@@ -58,14 +58,17 @@ if __name__ == '__main__':  # can't test sac yet, there is 'inf' value in datase
         )
 
     else:
-        env_kwarg_test = {  # todo give the possibility to change the interval
+        dataset_name = 'USDT_test'
+        env_kwarg_test = {
+            'dataset_name': dataset_name,
+            'num_steps': None,
         }
         env_kwargs.update(**env_kwarg_test)
-        run_name = '20210608_204057_Portfolio-v0'
-        soft_actor_critic.evaluate(
+        run_name = '20210720_192852_Portfolio-v0'
+        soft_actor_critic.render(
             'Portfolio-v0',
             run_name=run_name,
             env_kwargs=env_kwargs,
-            num_episodes=100
+            num_episodes=1
         )
 

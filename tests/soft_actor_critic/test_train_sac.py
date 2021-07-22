@@ -5,7 +5,7 @@ from portfolio_management.io_utilities import pickle_dump
 from portfolio_management.soft_actor_critic import train
 
 
-def test_episode(download_and_pickle: bool = True):
+def test_episode(download_and_pickle: bool = False):
     database_name = 'test_episode'
 
     if download_and_pickle:
