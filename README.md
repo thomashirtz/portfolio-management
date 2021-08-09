@@ -27,5 +27,5 @@ torch
 torchsummary  
 
 # License
-This repository is licensed under the terms of the Apache 2.0 License with LLVM Exceptions.
+This repository is licensed under the terms of the Apache 2.0 License.
 See [LICENSE](/LICENSE) for more information.
