@@ -25,3 +25,7 @@ scipy
 python-binance  
 torch  
 torchsummary  
+
+# License
+This repository is licensed under the terms of the Apache 2.0 License with LLVM Exceptions.
+See [LICENSE](/LICENSE) for more information.
