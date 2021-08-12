@@ -5,7 +5,7 @@ and allocation environment.
 The repository contains three main modules.
 - Data management module, used to create MySQL databases using SQLAlchemy and binance-API
 - Environment module, that created cryptocurrency market situations using the created databases.
-- The Agent module, which try to learn policies on the created environment.
+- The [Agent module](https://github.com/thomashirtz/soft-actor-critic), which try to learn policies on the created environment.
 
 The Soft Actor-Critic is a custom agent made to be able to receive several streams
 of data coming from the different cryptocurrencies. It uses an Ensemble of Identical 
